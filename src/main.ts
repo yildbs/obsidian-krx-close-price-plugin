@@ -1,114 +1,92 @@
+import { Notice, Plugin } from 'obsidian';
 import {
-	Editor,
-	MarkdownView,
-	MarkdownFileInfo,
-	Modal,
-	Notice,
-	Plugin,
-} from 'obsidian';
+	getActiveMarkdownFile,
+	readNoteAssetInfo,
+	readPreferredDate,
+	toLocalDateInputValue,
+} from './frontmatter';
+import { KrxOpenApiPriceProvider } from './providers/KrxOpenApiPriceProvider';
 import {
+	DEFAULT_API_BASE_URL,
 	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
+	KrxClosePriceSettingTab,
+	LEGACY_API_BASE_URL,
 } from './settings';
+import { ClosePriceModal } from './ui/ClosePriceModal';
+import { PluginSettings } from './types';
 
-// Remember to rename these classes and interfaces!
+export default class KrxClosePricePlugin extends Plugin {
+	settings!: PluginSettings;
 
-export default class MyPlugin extends Plugin {
-	settings!: MyPluginSettings;
-
-	async onload() {
+	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		this.addRibbonIcon('chart-line', '특정 날짜 종가 조회', () => {
+			this.openClosePriceModal();
 		});
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
-
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
+			id: 'open-close-price-lookup',
+			name: '특정 날짜 종가 조회',
 			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
-				editor.replaceSelection('Sample editor command');
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-				return false;
+				this.openClosePriceModal();
 			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(activeDocument, 'click', (_evt: MouseEvent) => {
-			new Notice('Click');
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000),
-		);
+		this.addSettingTab(new KrxClosePriceSettingTab(this.app, this));
 	}
 
-	onunload() {}
+	async loadSettings(): Promise<void> {
+		const loadedSettings = (await this.loadData()) as Partial<PluginSettings> | null;
+		this.settings = {
+			...DEFAULT_SETTINGS,
+			...loadedSettings,
+			cache: loadedSettings?.cache ?? {},
+		};
 
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
-		);
+		if (
+			!this.settings.apiBaseUrl ||
+			this.settings.apiBaseUrl === LEGACY_API_BASE_URL
+		) {
+			this.settings.apiBaseUrl = DEFAULT_API_BASE_URL;
+		}
 	}
 
-	async saveSettings() {
+	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 	}
-}
 
-class SampleModal extends Modal {
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText('Woah!');
-	}
+	private openClosePriceModal(): void {
+		const file = getActiveMarkdownFile(this.app);
 
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
+		if (!file) {
+			new Notice('현재 활성 노트가 Markdown 파일이 아닙니다.');
+			return;
+		}
+
+		const assetInfo = readNoteAssetInfo(this.app, file);
+
+		if (typeof assetInfo === 'string') {
+			new Notice(assetInfo, 8000);
+			return;
+		}
+
+		const initialDate =
+			this.settings.lastSelectedDate ??
+			readPreferredDate(this.app, file) ??
+			toLocalDateInputValue(new Date());
+
+		new ClosePriceModal({
+			app: this.app,
+			assetInfo,
+			initialDate,
+			settings: this.settings,
+			createProvider: (apiKey) =>
+				new KrxOpenApiPriceProvider({
+					apiBaseUrl: this.settings.apiBaseUrl,
+					apiKey,
+				}),
+			saveSettings: () => this.saveSettings(),
+		}).open();
 	}
 }

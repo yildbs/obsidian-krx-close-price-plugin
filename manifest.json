@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-krx-close-price-plugin",
+	"name": "KRX Close Price",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"minAppVersion": "1.2.3",
+	"description": "Look up raw KRX close prices for the asset in the current note frontmatter.",
+	"author": "illo.yoon",
+	"isDesktopOnly": true
 }

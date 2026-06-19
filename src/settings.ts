@@ -1,38 +1,54 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from './main';
+import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
+import KrxClosePricePlugin from './main';
+import { PluginSettings } from './types';
 
-export interface MyPluginSettings {
-	mySetting: string;
-}
+export const DEFAULT_API_BASE_URL = 'https://data-dbg.krx.co.kr/svc/apis';
+export const LEGACY_API_BASE_URL = 'https://data.krx.co.kr/svc/apis';
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default',
+export const DEFAULT_SETTINGS: PluginSettings = {
+	priceProvider: 'krx',
+	apiKey: '',
+	apiBaseUrl: DEFAULT_API_BASE_URL,
+	cache: {},
 };
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class KrxClosePriceSettingTab extends PluginSettingTab {
+	plugin: KrxClosePricePlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: KrxClosePricePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
 		const { containerEl } = this;
-
 		containerEl.empty();
 
+		new Setting(containerEl).setName('Krx 종가 조회 설정').setHeading();
+
 		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc("It's a secret")
-			.addText((text) =>
-				text
-					.setPlaceholder('Enter your secret')
-					.setValue(this.plugin.settings.mySetting)
-					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
-						await this.plugin.saveSettings();
-					}),
+			.setName('가격 데이터 제공자')
+			.setDesc('Krx open API를 사용합니다.')
+			.addText((text) => {
+				text.setValue('KRX').setDisabled(true);
+			});
+
+		new Setting(containerEl)
+			.setName('캐시 비우기')
+			.setDesc('저장된 종가 조회 캐시를 모두 삭제합니다.')
+			.addButton((button) =>
+				button.setButtonText('캐시 비우기').onClick(async () => {
+					this.plugin.settings.cache = {};
+					await this.plugin.saveSettings();
+					new Notice('종가 조회 캐시를 비웠습니다.');
+					this.display();
+				}),
 			);
+
+		const cacheCount = Object.keys(this.plugin.settings.cache).length;
+		containerEl.createEl('p', {
+			text: `현재 캐시 항목: ${cacheCount.toLocaleString()}개`,
+			cls: 'krx-close-price-cache-count',
+		});
 	}
 }

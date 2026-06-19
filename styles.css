@@ -6,3 +6,58 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.krx-close-price-modal h2 {
+	margin-bottom: 1rem;
+}
+
+.krx-close-price-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+}
+
+.krx-close-price-row {
+	align-items: center;
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: 5rem minmax(0, 1fr);
+}
+
+.krx-close-price-label {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.krx-close-price-value {
+	font-weight: 600;
+}
+
+.krx-close-price-api-key,
+.krx-close-price-date {
+	width: 100%;
+}
+
+.krx-close-price-actions {
+	display: flex;
+	gap: 0.5rem;
+	margin: 1rem 0;
+}
+
+.krx-close-price-result {
+	background: var(--background-secondary);
+	border-radius: 6px;
+	line-height: 1.6;
+	min-height: 3rem;
+	padding: 0.75rem;
+	white-space: pre-wrap;
+}
+
+.krx-close-price-error {
+	color: var(--text-error);
+}
+
+.krx-close-price-cache-count {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
