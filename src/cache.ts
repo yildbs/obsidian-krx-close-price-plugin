@@ -9,7 +9,13 @@ export function getCachedClosePrice(
 	symbol: string,
 	date: string,
 ): ClosePriceResult | null {
-	return settings.cache[getCacheKey(symbol, date)] ?? null;
+	const result = settings.cache[getCacheKey(symbol, date)];
+
+	if (!result || !Number.isFinite(result.marketCapRaw)) {
+		return null;
+	}
+
+	return result;
 }
 
 export function setCachedClosePrice(

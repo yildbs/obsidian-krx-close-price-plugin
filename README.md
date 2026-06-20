@@ -1,6 +1,6 @@
 # KRX Close Price
 
-Obsidian plugin for looking up raw KRX close prices from the current note's frontmatter.
+Obsidian plugin for looking up raw KRX close prices and market caps from the current note's frontmatter.
 
 ## Usage
 
@@ -15,7 +15,7 @@ symbol: "200670"
 
 `symbol` may be a YAML number, a six-digit short code, or a KRX-style `A` prefixed code such as `A005930`.
 
-Select the ribbon icon or run the command **특정 날짜 종가 조회**, enter your KRX Open API key, choose a date, and select **조회**. The plugin stores the API key locally for the next lookup, shows the close price, copies the result to the clipboard automatically, and also provides a **복사** button.
+Select the ribbon icon or run the command **특정 날짜 종가 및 시가총액 조회**, enter your KRX Open API key, choose a date, and select **조회**. The plugin stores the API key locally for the next lookup, shows the close price and market cap, copies the result to the clipboard automatically, and also provides a **복사** button.
 
 ## Settings
 
@@ -30,7 +30,7 @@ The plugin uses KRX Data Marketplace OPEN API stock daily trading endpoints:
 - `ksq_bydd_trd`: 코스닥 일별매매정보
 - `knx_bydd_trd`: 코넥스 일별매매정보
 
-Close price is read from `TDD_CLSPRC` and treated as raw, not adjusted, close price.
+Close price is read from `TDD_CLSPRC` and treated as raw, not adjusted, close price. Market cap is read from `MKTCAP` and displayed in units of 100 million KRW.
 
 ## Development
 

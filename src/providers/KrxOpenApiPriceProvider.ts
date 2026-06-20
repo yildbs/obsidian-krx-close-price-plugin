@@ -8,6 +8,7 @@ interface KrxDailyTradeRow {
 	ISU_NM?: string;
 	MKT_NM?: string;
 	TDD_CLSPRC?: string;
+	MKTCAP?: string;
 }
 
 interface KrxDailyTradeResponse {
@@ -51,9 +52,14 @@ export class KrxOpenApiPriceProvider implements PriceProvider {
 
 			if (row) {
 				const closeRaw = parseKrxNumber(row.TDD_CLSPRC);
+				const marketCapRaw = parseKrxNumber(row.MKTCAP);
 
 				if (closeRaw === null) {
 					throw new Error('KRX 응답에서 종가를 읽을 수 없습니다.');
+				}
+
+				if (marketCapRaw === null) {
+					throw new Error('KRX 응답에서 시가총액을 읽을 수 없습니다.');
 				}
 
 				return {
@@ -62,6 +68,7 @@ export class KrxOpenApiPriceProvider implements PriceProvider {
 					requestedDate: params.date,
 					actualTradeDate: formatKrxDate(row.BAS_DD ?? basDd),
 					closeRaw,
+					marketCapRaw,
 					priceType: params.priceType,
 					source: 'KRX',
 					fetchedAt: new Date().toISOString(),

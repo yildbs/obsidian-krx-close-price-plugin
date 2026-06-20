@@ -21,13 +21,13 @@ export default class KrxClosePricePlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		this.addRibbonIcon('chart-line', '특정 날짜 종가 조회', () => {
+		this.addRibbonIcon('chart-line', '특정 날짜 종가 및 시가총액 조회', () => {
 			this.openClosePriceModal();
 		});
 
 		this.addCommand({
 			id: 'open-close-price-lookup',
-			name: '특정 날짜 종가 조회',
+			name: '특정 날짜 종가 및 시가총액 조회',
 			callback: () => {
 				this.openClosePriceModal();
 			},

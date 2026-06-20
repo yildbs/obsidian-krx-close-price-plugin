@@ -8,6 +8,7 @@ export interface ClosePriceResult {
 	requestedDate: string;
 	actualTradeDate: string;
 	closeRaw: number;
+	marketCapRaw: number;
 	priceType: PriceType;
 	source: string;
 	fetchedAt: string;

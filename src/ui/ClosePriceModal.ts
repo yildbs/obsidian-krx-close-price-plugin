@@ -39,7 +39,7 @@ export class ClosePriceModal extends Modal {
 		contentEl.empty();
 		contentEl.addClass('krx-close-price-modal');
 
-		contentEl.createEl('h2', { text: '특정 날짜 종가 조회' });
+		contentEl.createEl('h2', { text: '특정 날짜 종가 및 시가총액 조회' });
 
 		const summaryEl = contentEl.createDiv({ cls: 'krx-close-price-summary' });
 		this.createReadonlyRow(summaryEl, '기업명', this.assetInfo.assetName);
@@ -182,14 +182,14 @@ export class ClosePriceModal extends Modal {
 
 		try {
 			await navigator.clipboard.writeText(this.lastResultText);
-			new Notice(
-				isAutomatic
-					? '종가를 조회하고 클립보드에 복사했습니다.'
+				new Notice(
+					isAutomatic
+					? '조회 결과를 클립보드에 복사했습니다.'
 					: '내용을 클립보드에 복사했습니다.',
 			);
 		} catch (error) {
 			console.error(error);
-			new Notice('종가를 조회했습니다. 복사 버튼으로 다시 복사할 수 있습니다.');
+			new Notice('조회했습니다. 복사 버튼으로 다시 복사할 수 있습니다.');
 		}
 	}
 
@@ -203,14 +203,15 @@ export class ClosePriceModal extends Modal {
 
 function formatLookupError(error: unknown): string {
 	if (error instanceof Error && error.message) {
-		return `종가 조회 중 오류가 발생했습니다.\n${error.message}`;
+		return `조회 중 오류가 발생했습니다.\n${error.message}`;
 	}
 
-	return '종가 조회 중 오류가 발생했습니다.';
+	return '조회 중 오류가 발생했습니다.';
 }
 
 export function formatClosePriceResult(result: ClosePriceResult): string {
 	const closePrice = `${result.closeRaw.toLocaleString()}원`;
+	const marketCap = `${formatHundredMillionWon(result.marketCapRaw)}억원`;
 	const dateLine =
 		result.requestedDate === result.actualTradeDate
 			? `${result.requestedDate} 종가: ${closePrice}`
@@ -223,7 +224,14 @@ export function formatClosePriceResult(result: ClosePriceResult): string {
 	return [
 		`${result.assetName} (${result.symbol})`,
 		dateLine,
+		`시가총액: ${marketCap}`,
 		'데이터 기준: 원주가',
 		`출처: ${result.source}`,
 	].join('\n');
+}
+
+function formatHundredMillionWon(value: number): string {
+	return (value / 100_000_000).toLocaleString(undefined, {
+		maximumFractionDigits: 2,
+	});
 }
